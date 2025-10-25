@@ -32,10 +32,13 @@ export default function Shipping() {
 
                 <div>
                   <h3 className="font-semibold mb-2">Kargo Ücreti</h3>
-                  <p className="text-muted-foreground">
-                    Tüm ürünlerimizde kargo tamamen ücretsizdir. Sepet tutarından bağımsız olarak 
-                    siparişiniz ücretsiz kargo ile adresinize teslim edilir.
+                  <p className="text-muted-foreground mb-2">
+                    Kargo ücreti sepet tutarınıza göre değişmektedir:
                   </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                    <li>300 TL ve üzeri alışverişlerde kargo ücretsizdir</li>
+                    <li>300 TL altı alışverişlerde kargo ücreti 49,90 TL'dir</li>
+                  </ul>
                 </div>
 
                 <div>
