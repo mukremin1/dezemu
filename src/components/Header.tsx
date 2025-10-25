@@ -63,6 +63,13 @@ export const Header = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          {user && (
+            <Link to="/admin/upload">
+              <Button variant="ghost" size="sm">
+                Admin
+              </Button>
+            </Link>
+          )}
           {user ? (
             <Button variant="ghost" size="icon" onClick={handleSignOut}>
               <LogOut className="h-5 w-5" />
