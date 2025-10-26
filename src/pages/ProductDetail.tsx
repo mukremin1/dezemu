@@ -8,11 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingCart, ArrowLeft } from "lucide-react";
 import { useState } from "react";
+import { useCart } from "@/hooks/useCart";
 
 const ProductDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
+  const addItem = useCart((state) => state.addItem);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", slug],
@@ -165,6 +167,17 @@ const ProductDetail = () => {
                 className="flex-1"
                 size="lg"
                 disabled={product.stock_quantity === 0}
+                onClick={() => {
+                  addItem({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    imageUrl: product.product_images?.[0]?.image_url,
+                    stock: product.stock_quantity,
+                    slug: product.slug,
+                    quantity,
+                  });
+                }}
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 Sepete Ekle

@@ -7,12 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/hooks/useCart";
 
 export const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [cartItemsCount] = useState(0);
+  const cartItemsCount = useCart((state) => state.getTotalItems());
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

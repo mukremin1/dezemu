@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "@/hooks/useCart";
 
 interface ProductCardProps {
   id: string;
@@ -24,7 +25,20 @@ export const ProductCard = ({
   isDigital,
 }: ProductCardProps) => {
   const navigate = useNavigate();
+  const addItem = useCart((state) => state.addItem);
   const discount = comparePrice ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addItem({
+      id,
+      name,
+      price,
+      imageUrl,
+      stock: 100, // We don't have stock info in the card, default to high number
+      slug,
+    });
+  };
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
@@ -67,7 +81,7 @@ export const ProductCard = ({
         </div>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <Button className="w-full" onClick={() => navigate(`/product/${slug}`)}>
+        <Button className="w-full" onClick={handleAddToCart}>
           <ShoppingCart className="mr-2 h-4 w-4" />
           Sepete Ekle
         </Button>
