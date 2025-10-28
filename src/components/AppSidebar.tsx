@@ -1,5 +1,7 @@
-import { Home, Mail, Phone } from "lucide-react";
+import { Home, Tag } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
@@ -16,13 +18,20 @@ export function AppSidebar() {
   const { open } = useSidebar();
   const location = useLocation();
 
+  const { data: categories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const mainItems = [
     { title: "Ana Sayfa", url: "/", icon: Home },
-  ];
-
-  const contactItems = [
-    { title: "destek@dezemu.com", icon: Mail, isExternal: true, href: "mailto:destek@dezemu.com" },
-    { title: "+90 539 526 32 93", icon: Phone, isExternal: true, href: "tel:+905395263293" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -49,16 +58,16 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>İletişim</SidebarGroupLabel>
+          <SidebarGroupLabel>Kategoriler</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {contactItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+              {categories?.map((category) => (
+                <SidebarMenuItem key={category.id}>
                   <SidebarMenuButton asChild>
-                    <a href={item.href} className="text-xs">
-                      <item.icon className="h-4 w-4" />
-                      {open && <span>{item.title}</span>}
-                    </a>
+                    <Link to={`/?category=${category.slug}`}>
+                      <Tag className="h-4 w-4" />
+                      {open && <span>{category.name}</span>}
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

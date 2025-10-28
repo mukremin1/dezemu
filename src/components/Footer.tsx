@@ -19,16 +19,6 @@ export const Footer = () => {
                   Hakkımızda
                 </Link>
               </li>
-              <li>
-                <a href="mailto:destek@dezemu.com" className="hover:text-foreground">
-                  destek@dezemu.com
-                </a>
-              </li>
-              <li>
-                <a href="tel:+905395263293" className="hover:text-foreground">
-                  +90 539 526 32 93
-                </a>
-              </li>
             </ul>
           </div>
           <div>
@@ -56,8 +46,18 @@ export const Footer = () => {
             </ul>
           </div>
         </div>
-        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; 2025 DEZEMU. Tüm hakları saklıdır.</p>
+        <div className="mt-8 pt-8 border-t">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+            <p>&copy; 2025 DEZEMU. Tüm hakları saklıdır.</p>
+            <div className="flex gap-4">
+              <a href="mailto:destek@dezemu.com" className="hover:text-foreground">
+                destek@dezemu.com
+              </a>
+              <a href="tel:+905395263293" className="hover:text-foreground">
+                +90 539 526 32 93
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
