@@ -28,6 +28,48 @@ const AdminUpload = () => {
 
       for (const row of jsonData as any[]) {
         try {
+          // Kategori işleme - otomatik kategori oluşturma
+          let categoryId = null;
+          const categoryName = row['Kategori'] || row['category'] || row['Category'];
+          
+          if (categoryName) {
+            const categorySlug = categoryName
+              .toLowerCase()
+              .replace(/ğ/g, 'g')
+              .replace(/ü/g, 'u')
+              .replace(/ş/g, 's')
+              .replace(/ı/g, 'i')
+              .replace(/ö/g, 'o')
+              .replace(/ç/g, 'c')
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/(^-|-$)/g, '');
+
+            // Kategori var mı kontrol et
+            const { data: existingCategory } = await supabase
+              .from('categories')
+              .select('id')
+              .eq('slug', categorySlug)
+              .maybeSingle();
+
+            if (existingCategory) {
+              categoryId = existingCategory.id;
+            } else {
+              // Yeni kategori oluştur
+              const { data: newCategory, error: categoryError } = await supabase
+                .from('categories')
+                .insert({
+                  name: categoryName,
+                  slug: categorySlug,
+                })
+                .select('id')
+                .single();
+
+              if (!categoryError && newCategory) {
+                categoryId = newCategory.id;
+              }
+            }
+          }
+
           // Excel sütun isimleri ile veritabanı eşleştirmesi
           const productData = {
             name: row['Ürün Adı'] || row['name'] || row['Name'] || '',
@@ -54,6 +96,7 @@ const AdminUpload = () => {
             weight: row['Ağırlık'] || row['weight'] ? parseFloat(row['Ağırlık'] || row['weight']) : null,
             dimensions: row['Boyutlar'] || row['dimensions'] || null,
             tags: row['Etiketler'] || row['tags'] ? String(row['Etiketler'] || row['tags']).split(',').map((t: string) => t.trim()) : null,
+            category_id: categoryId,
           };
 
           const { error } = await supabase
@@ -110,6 +153,48 @@ const AdminUpload = () => {
 
       for (const row of jsonData as any[]) {
         try {
+          // Kategori işleme - otomatik kategori oluşturma
+          let categoryId = null;
+          const categoryName = row['Kategori'];
+          
+          if (categoryName) {
+            const categorySlug = categoryName
+              .toLowerCase()
+              .replace(/ğ/g, 'g')
+              .replace(/ü/g, 'u')
+              .replace(/ş/g, 's')
+              .replace(/ı/g, 'i')
+              .replace(/ö/g, 'o')
+              .replace(/ç/g, 'c')
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/(^-|-$)/g, '');
+
+            // Kategori var mı kontrol et
+            const { data: existingCategory } = await supabase
+              .from('categories')
+              .select('id')
+              .eq('slug', categorySlug)
+              .maybeSingle();
+
+            if (existingCategory) {
+              categoryId = existingCategory.id;
+            } else {
+              // Yeni kategori oluştur
+              const { data: newCategory, error: categoryError } = await supabase
+                .from('categories')
+                .insert({
+                  name: categoryName,
+                  slug: categorySlug,
+                })
+                .select('id')
+                .single();
+
+              if (!categoryError && newCategory) {
+                categoryId = newCategory.id;
+              }
+            }
+          }
+
           const productData = {
             name: row['Ürün Adı'] || '',
             slug: (row['Ürün Adı'] || '')
@@ -131,6 +216,7 @@ const AdminUpload = () => {
             is_active: true,
             is_featured: false,
             is_digital: false,
+            category_id: categoryId,
           };
 
           const { error } = await supabase
@@ -194,7 +280,7 @@ const AdminUpload = () => {
               Örnek Excel Dosyasını İndir
             </Button>
             <p className="text-sm text-muted-foreground">
-              Excel dosyanızda şu sütunlar olmalı: Ürün Adı, Fiyat, Eski Fiyat, Açıklama, Stok, SKU
+              Excel dosyanızda şu sütunlar olmalı: Ürün Adı, Kategori, Fiyat, Eski Fiyat, Açıklama, Stok, SKU
             </p>
           </div>
 

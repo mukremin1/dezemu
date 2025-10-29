@@ -13,16 +13,31 @@ const Index = () => {
   const categoryFilter = searchParams.get("category");
 
   const { data: products, isLoading } = useQuery({
-    queryKey: ["products"],
+    queryKey: ["products", categoryFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("products")
         .select(`
           *,
-          product_images(image_url, alt_text)
+          product_images(image_url, alt_text),
+          categories(slug)
         `)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
+        .eq("is_active", true);
+
+      // Kategori filtresi varsa uygula
+      if (categoryFilter) {
+        const { data: category } = await supabase
+          .from("categories")
+          .select("id")
+          .eq("slug", categoryFilter)
+          .maybeSingle();
+
+        if (category) {
+          query = query.eq("category_id", category.id);
+        }
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) throw error;
       return data;
@@ -56,7 +71,9 @@ const Index = () => {
         {/* Featured Products */}
         <section className="py-16">
           <div className="container">
-            <h2 className="text-3xl font-bold mb-8">Öne Çıkan Ürünler</h2>
+            <h2 className="text-3xl font-bold mb-8">
+              {categoryFilter ? `Kategori: ${categoryFilter}` : "Öne Çıkan Ürünler"}
+            </h2>
             
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
