@@ -1,9 +1,11 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
+import { useState } from "react";
+import { ProductEditDialog } from "./ProductEditDialog";
 
 interface ProductCardProps {
   id: string;
@@ -13,6 +15,7 @@ interface ProductCardProps {
   imageUrl?: string;
   slug: string;
   isDigital: boolean;
+  isAdmin?: boolean;
 }
 
 export const ProductCard = ({
@@ -23,10 +26,12 @@ export const ProductCard = ({
   imageUrl,
   slug,
   isDigital,
+  isAdmin = false,
 }: ProductCardProps) => {
   const navigate = useNavigate();
   const addItem = useCart((state) => state.addItem);
   const discount = comparePrice ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -80,12 +85,25 @@ export const ProductCard = ({
           )}
         </div>
       </CardContent>
-      <CardFooter className="p-4 pt-0">
-        <Button className="w-full" onClick={handleAddToCart}>
+      <CardFooter className="p-4 pt-0 flex gap-2">
+        <Button className="flex-1" onClick={handleAddToCart}>
           <ShoppingCart className="mr-2 h-4 w-4" />
           Sepete Ekle
         </Button>
+        {isAdmin && (
+          <Button variant="outline" size="icon" onClick={(e) => { e.stopPropagation(); setEditDialogOpen(true); }}>
+            <Edit className="h-4 w-4" />
+          </Button>
+        )}
       </CardFooter>
+      
+      {isAdmin && (
+        <ProductEditDialog 
+          productId={id} 
+          open={editDialogOpen} 
+          onOpenChange={setEditDialogOpen} 
+        />
+      )}
     </Card>
   );
 };

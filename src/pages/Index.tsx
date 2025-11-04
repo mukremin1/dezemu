@@ -31,6 +31,8 @@ const Index = () => {
   const [productName, setProductName] = useState("");
   const [productImageUrl, setProductImageUrl] = useState("");
   const [productPrice, setProductPrice] = useState("");
+  const [productComparePrice, setProductComparePrice] = useState("");
+  const [productStock, setProductStock] = useState("100");
   const [productCategory, setProductCategory] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isActive, setIsActive] = useState(true);
@@ -111,8 +113,9 @@ const Index = () => {
           name: productName,
           slug,
           price: parseFloat(productPrice),
+          compare_price: productComparePrice ? parseFloat(productComparePrice) : null,
           category_id: productCategory || null,
-          stock_quantity: 100,
+          stock_quantity: parseInt(productStock),
           is_active: isActive,
         })
         .select()
@@ -140,6 +143,8 @@ const Index = () => {
       setProductName("");
       setProductImageUrl("");
       setProductPrice("");
+      setProductComparePrice("");
+      setProductStock("100");
       setProductCategory("");
       setIsActive(true);
       
@@ -345,8 +350,15 @@ const Index = () => {
                           </Button>
                         </label>
                         <p className="text-sm text-muted-foreground">
-                          Excel dosyası: Ürün Adı, Fiyat, Kategori, Stok, Resim URL
+                          Excel sütunları: Ürün Adı, Fiyat, Eski Fiyat, Kategori, Stok, Resim URL, Açıklama, Kısa Açıklama, SKU, Barkod, Öne Çıkan, Dijital
                         </p>
+                        <a 
+                          href="/products-template.xlsx" 
+                          download 
+                          className="text-sm text-primary hover:underline"
+                        >
+                          Örnek Excel Şablonu İndir
+                        </a>
                       </div>
 
                       {/* Tek Ürün Ekleme */}
@@ -396,6 +408,30 @@ const Index = () => {
                                 value={productPrice}
                                 onChange={(e) => setProductPrice(e.target.value)}
                                 placeholder="0.00"
+                                required
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="quick-compare-price">Eski Fiyat (Kampanya)</Label>
+                              <Input
+                                id="quick-compare-price"
+                                type="number"
+                                step="0.01"
+                                value={productComparePrice}
+                                onChange={(e) => setProductComparePrice(e.target.value)}
+                                placeholder="0.00"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="quick-stock">Stok Miktarı *</Label>
+                              <Input
+                                id="quick-stock"
+                                type="number"
+                                value={productStock}
+                                onChange={(e) => setProductStock(e.target.value)}
+                                placeholder="100"
                                 required
                               />
                             </div>
@@ -469,6 +505,7 @@ const Index = () => {
                     imageUrl={product.product_images?.[0]?.image_url}
                     slug={product.slug}
                     isDigital={product.is_digital}
+                    isAdmin={isAdmin}
                   />
                 ))}
               </div>
