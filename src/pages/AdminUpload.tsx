@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import * as XLSX from "xlsx";
-import { Upload, Download, Plus } from "lucide-react";
+import { Upload, Download, Plus, Link } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +28,7 @@ const productFormSchema = z.object({
 
 const AdminUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
+  const [xmlUrl, setXmlUrl] = useState("");
   const { toast } = useToast();
 
   const { data: categories = [] } = useQuery({
@@ -352,6 +353,154 @@ const AdminUpload = () => {
     }
   };
 
+  const handleXmlImport = async () => {
+    if (!xmlUrl.trim()) {
+      toast({
+        title: "Hata",
+        description: "Lütfen geçerli bir XML URL'i girin.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const response = await fetch(xmlUrl);
+      const xmlText = await response.text();
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+      const products = xmlDoc.getElementsByTagName("urun");
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (let i = 0; i < products.length; i++) {
+        const product = products[i];
+        
+        try {
+          const name = product.getElementsByTagName("isim")[0]?.textContent || "";
+          const categoryName = product.getElementsByTagName("kategori")[0]?.textContent || "";
+          const price = parseFloat(product.getElementsByTagName("fiyat")[0]?.textContent || "0");
+          const comparePrice = parseFloat(product.getElementsByTagName("eskiFiyat")[0]?.textContent || "0");
+          const description = product.getElementsByTagName("aciklama")[0]?.textContent || "";
+          const stock = parseInt(product.getElementsByTagName("stok")[0]?.textContent || "0");
+          const sku = product.getElementsByTagName("sku")[0]?.textContent || "";
+          const imageUrl = product.getElementsByTagName("resim")[0]?.textContent || null;
+
+          // Kategori işleme
+          let categoryId = null;
+          if (categoryName) {
+            const categorySlug = categoryName
+              .toLowerCase()
+              .replace(/ğ/g, 'g')
+              .replace(/ü/g, 'u')
+              .replace(/ş/g, 's')
+              .replace(/ı/g, 'i')
+              .replace(/ö/g, 'o')
+              .replace(/ç/g, 'c')
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/(^-|-$)/g, '');
+
+            const { data: existingCategory } = await supabase
+              .from('categories')
+              .select('id')
+              .eq('slug', categorySlug)
+              .maybeSingle();
+
+            if (existingCategory) {
+              categoryId = existingCategory.id;
+            } else {
+              const { data: newCategory, error: categoryError } = await supabase
+                .from('categories')
+                .insert({
+                  name: categoryName,
+                  slug: categorySlug,
+                })
+                .select('id')
+                .single();
+
+              if (!categoryError && newCategory) {
+                categoryId = newCategory.id;
+              }
+            }
+          }
+
+          // Slug oluştur
+          const slug = name
+            .toLowerCase()
+            .replace(/ğ/g, 'g')
+            .replace(/ü/g, 'u')
+            .replace(/ş/g, 's')
+            .replace(/ı/g, 'i')
+            .replace(/ö/g, 'o')
+            .replace(/ç/g, 'c')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+
+          // Ürünü ekle
+          const { data: insertedProduct, error: productError } = await supabase
+            .from('products')
+            .insert({
+              name,
+              slug,
+              price: price * 0.55, // %45 indirim uygula
+              compare_price: price > 0 ? price : (comparePrice > 0 ? comparePrice : null),
+              description,
+              stock_quantity: stock,
+              sku,
+              category_id: categoryId,
+              is_active: true,
+              is_featured: false,
+              is_digital: false,
+            })
+            .select('id')
+            .single();
+
+          if (productError) {
+            console.error('Product insert error:', productError);
+            errorCount++;
+          } else if (insertedProduct && imageUrl) {
+            // Resim varsa ekle
+            const { error: imageError } = await supabase
+              .from('product_images')
+              .insert({
+                product_id: insertedProduct.id,
+                image_url: imageUrl,
+                position: 0,
+              });
+
+            if (imageError) {
+              console.error('Image insert error:', imageError);
+            }
+            
+            successCount++;
+          } else {
+            successCount++;
+          }
+        } catch (err) {
+          console.error('Product processing error:', err);
+          errorCount++;
+        }
+      }
+
+      toast({
+        title: "XML İçe Aktarma Tamamlandı",
+        description: `${successCount} ürün başarıyla eklendi. ${errorCount > 0 ? `${errorCount} ürün eklenemedi.` : ''}`,
+      });
+      
+      setXmlUrl("");
+    } catch (error) {
+      console.error('XML processing error:', error);
+      toast({
+        title: "Hata",
+        description: "XML dosyası işlenirken bir hata oluştu.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 space-y-6">
       {/* Manuel Ürün Ekleme Formu */}
@@ -571,6 +720,41 @@ const AdminUpload = () => {
               </div>
             </label>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* XML İçe Aktarma */}
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Link className="h-5 w-5" />
+            XML Link ile Ürün İçe Aktar
+          </CardTitle>
+          <CardDescription>
+            XML formatındaki ürün feedini linkten içe aktarın (otomatik %45 indirim uygulanır)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Input
+              type="url"
+              placeholder="https://example.com/products.xml"
+              value={xmlUrl}
+              onChange={(e) => setXmlUrl(e.target.value)}
+              disabled={isUploading}
+            />
+            <p className="text-xs text-muted-foreground">
+              XML formatı: &lt;urun&gt;&lt;isim&gt;, &lt;kategori&gt;, &lt;fiyat&gt;, &lt;eskiFiyat&gt;, &lt;aciklama&gt;, &lt;stok&gt;, &lt;sku&gt;, &lt;resim&gt;
+            </p>
+          </div>
+          <Button
+            onClick={handleXmlImport}
+            disabled={isUploading || !xmlUrl.trim()}
+            className="w-full"
+          >
+            <Link className="mr-2 h-4 w-4" />
+            {isUploading ? "İçe Aktarılıyor..." : "XML'den İçe Aktar"}
+          </Button>
         </CardContent>
       </Card>
     </div>
