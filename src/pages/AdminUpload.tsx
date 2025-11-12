@@ -827,6 +827,30 @@ const AdminUpload = () => {
           </Form>
         </CardContent>
       </Card>
+
+      {/* XML Onay Dialog */}
+      <AlertDialog open={showXmlConfirm} onOpenChange={setShowXmlConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>XML İçe Aktarma Onayı</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>Aşağıdaki URL'den ürünler içe aktarılacak:</p>
+              <p className="font-mono text-sm bg-muted p-2 rounded break-all">
+                {xmlUrl}
+              </p>
+              <p className="text-destructive font-medium">
+                Bu işlem geri alınamaz. Devam etmek istediğinizden emin misiniz?
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleXmlImport}>
+              Onayla ve İçe Aktar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
