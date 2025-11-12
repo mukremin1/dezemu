@@ -387,7 +387,7 @@ const AdminUpload = () => {
     }
   };
 
-  const handleXmlImport = async () => {
+  const handleXmlConfirmOpen = () => {
     if (!xmlUrl.trim()) {
       toast({
         title: "Hata",
@@ -397,20 +397,24 @@ const AdminUpload = () => {
       return;
     }
 
+    // Security: Validate URL format and require HTTPS
+    const urlPattern = /^https:\/\/[a-zA-Z0-9-.]+(\.[\w]{2,})+/;
+    if (!urlPattern.test(xmlUrl)) {
+      toast({
+        title: "Güvenlik Hatası",
+        description: "Sadece HTTPS protokolü ile başlayan URL'ler kabul edilir.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setShowXmlConfirm(true);
+  };
+
+  const handleXmlImport = async () => {
+    setShowXmlConfirm(false);
     setIsUploading(true);
     try {
-      // Security: Validate URL format and require HTTPS
-      const urlPattern = /^https:\/\/[a-zA-Z0-9-.]+(\.[\w]{2,})+/;
-      if (!urlPattern.test(xmlUrl)) {
-        toast({
-          title: "Güvenlik Hatası",
-          description: "Sadece HTTPS protokolü ile başlayan URL'ler kabul edilir.",
-          variant: "destructive",
-        });
-        setIsUploading(false);
-        return;
-      }
-
       // Security: Add timeout (10 seconds) and abort controller
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10000);
@@ -421,34 +425,11 @@ const AdminUpload = () => {
       });
       clearTimeout(timeout);
 
-      // Security: Check file size limit (10MB)
-      const contentLength = response.headers.get('content-length');
-      if (contentLength && parseInt(contentLength) > 10485760) {
-        toast({
-          title: "Dosya Çok Büyük",
-          description: "XML dosyası 10MB'dan küçük olmalıdır.",
-          variant: "destructive",
-        });
-        setIsUploading(false);
-        return;
-      }
-
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const xmlText = await response.text();
-      
-      // Security: Check actual size after download
-      if (xmlText.length > 10485760) {
-        toast({
-          title: "Dosya Çok Büyük",
-          description: "XML dosyası 10MB'dan küçük olmalıdır.",
-          variant: "destructive",
-        });
-        setIsUploading(false);
-        return;
-      }
 
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlText, "text/xml");
