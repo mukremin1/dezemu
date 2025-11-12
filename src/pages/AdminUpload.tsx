@@ -558,6 +558,97 @@ const AdminUpload = () => {
 
   return (
     <div className="container mx-auto py-8 px-4 space-y-6">
+      {/* XML İçe Aktarma */}
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Link className="h-5 w-5" />
+            XML Link ile Ürün İçe Aktar
+          </CardTitle>
+          <CardDescription>
+            XML formatındaki ürün feedini linkten içe aktarın (otomatik %45 indirim uygulanır)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Input
+              type="url"
+              placeholder="https://example.com/products.xml"
+              value={xmlUrl}
+              onChange={(e) => setXmlUrl(e.target.value)}
+              disabled={isUploading}
+            />
+            <p className="text-xs text-muted-foreground">
+              XML formatı: &lt;urun&gt;&lt;isim&gt;, &lt;kategori&gt;, &lt;fiyat&gt;, &lt;eskiFiyat&gt;, &lt;aciklama&gt;, &lt;stok&gt;, &lt;sku&gt;, &lt;resim&gt;
+            </p>
+          </div>
+          <Button
+            onClick={handleXmlImport}
+            disabled={isUploading || !xmlUrl.trim()}
+            className="w-full"
+          >
+            <Link className="mr-2 h-4 w-4" />
+            {isUploading ? "İçe Aktarılıyor..." : "XML'den İçe Aktar"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Excel Yükleme */}
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Toplu Ürün Yükleme</CardTitle>
+          <CardDescription>
+            Excel dosyanızı yükleyerek toplu ürün ekleyebilirsiniz
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Button
+              variant="default"
+              onClick={handleAutoUpload}
+              disabled={isUploading}
+              className="w-full"
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {isUploading ? "Yükleniyor..." : "Tüm Ürünleri Otomatik Yükle"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={downloadTemplate}
+              className="w-full"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Örnek Excel Dosyasını İndir
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              Excel dosyanızda şu sütunlar olmalı: Ürün Adı, Kategori, Fiyat, Eski Fiyat, Açıklama, Stok, SKU
+            </p>
+          </div>
+
+          <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleFileUpload}
+              disabled={isUploading}
+              className="hidden"
+              id="file-upload"
+            />
+            <label htmlFor="file-upload" className="cursor-pointer">
+              <div className="flex flex-col items-center gap-2">
+                <Upload className="h-12 w-12 text-muted-foreground" />
+                <p className="text-sm font-medium">
+                  {isUploading ? "Yükleniyor..." : "Excel dosyası seçin"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  .xlsx veya .xls formatında
+                </p>
+              </div>
+            </label>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Manuel Ürün Ekleme Formu */}
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
@@ -719,97 +810,6 @@ const AdminUpload = () => {
               </Button>
             </form>
           </Form>
-        </CardContent>
-      </Card>
-
-      {/* Excel Yükleme */}
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Toplu Ürün Yükleme</CardTitle>
-          <CardDescription>
-            Excel dosyanızı yükleyerek toplu ürün ekleyebilirsiniz
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Button
-              variant="default"
-              onClick={handleAutoUpload}
-              disabled={isUploading}
-              className="w-full"
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              {isUploading ? "Yükleniyor..." : "Tüm Ürünleri Otomatik Yükle"}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={downloadTemplate}
-              className="w-full"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Örnek Excel Dosyasını İndir
-            </Button>
-            <p className="text-sm text-muted-foreground">
-              Excel dosyanızda şu sütunlar olmalı: Ürün Adı, Kategori, Fiyat, Eski Fiyat, Açıklama, Stok, SKU
-            </p>
-          </div>
-
-          <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-            <input
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleFileUpload}
-              disabled={isUploading}
-              className="hidden"
-              id="file-upload"
-            />
-            <label htmlFor="file-upload" className="cursor-pointer">
-              <div className="flex flex-col items-center gap-2">
-                <Upload className="h-12 w-12 text-muted-foreground" />
-                <p className="text-sm font-medium">
-                  {isUploading ? "Yükleniyor..." : "Excel dosyası seçin"}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  .xlsx veya .xls formatında
-                </p>
-              </div>
-            </label>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* XML İçe Aktarma */}
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Link className="h-5 w-5" />
-            XML Link ile Ürün İçe Aktar
-          </CardTitle>
-          <CardDescription>
-            XML formatındaki ürün feedini linkten içe aktarın (otomatik %45 indirim uygulanır)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Input
-              type="url"
-              placeholder="https://example.com/products.xml"
-              value={xmlUrl}
-              onChange={(e) => setXmlUrl(e.target.value)}
-              disabled={isUploading}
-            />
-            <p className="text-xs text-muted-foreground">
-              XML formatı: &lt;urun&gt;&lt;isim&gt;, &lt;kategori&gt;, &lt;fiyat&gt;, &lt;eskiFiyat&gt;, &lt;aciklama&gt;, &lt;stok&gt;, &lt;sku&gt;, &lt;resim&gt;
-            </p>
-          </div>
-          <Button
-            onClick={handleXmlImport}
-            disabled={isUploading || !xmlUrl.trim()}
-            className="w-full"
-          >
-            <Link className="mr-2 h-4 w-4" />
-            {isUploading ? "İçe Aktarılıyor..." : "XML'den İçe Aktar"}
-          </Button>
         </CardContent>
       </Card>
     </div>
