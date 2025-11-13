@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 
 export default function Header() {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+
 
   return (
     <header className="fixed top-0 left-0 w-full bg-white shadow-sm z-50">
@@ -19,8 +21,14 @@ export default function Header() {
         <div className="hidden md:flex items-center relative w-1/2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search..."
-            className="pl-10"
+              placeholder="Ürün ara..."
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+              if (e.key === "Enter") {
+              navigate(`/search?q=${searchQuery}`);
+            
           />
         </div>
 
