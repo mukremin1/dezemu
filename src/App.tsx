@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { Header } from "./Header";
 import { useEffect, useState } from "react";
+import { SearchPage } from "./pages/SearchPage";
 
 // Utility hook to parse query params
 function useQuery() {
@@ -44,6 +45,8 @@ export const App = () => {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/search" element={<SearchPage />} />
+        {/* Diğer sayfalar */}
       </Routes>
     </Router>
   );
