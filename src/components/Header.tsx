@@ -47,8 +47,9 @@ export const Header = () => {
     navigate("/");
   };
 
-  const handleSearch = () => {
-    if (searchQuery.trim() !== "") {
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
@@ -65,21 +66,18 @@ export const Header = () => {
           </h1>
         </div>
 
-        <div className="hidden md:flex flex-1 max-w-xl mx-8">
-          <div className="relative w-full flex">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Ürün ara..."
-              className="pl-10 flex-1"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSearch();
-              }}
-            />
-            <Button className="ml-2" onClick={handleSearch}>Ara</Button>
-          </div>
-        </div>
+        <form
+          onSubmit={handleSearch}
+          className="hidden md:flex flex-1 max-w-xl mx-8 relative"
+        >
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Ürün ara..."
+            className="pl-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </form>
 
         <div className="flex items-center gap-2">
           {user ? (
@@ -92,7 +90,10 @@ export const Header = () => {
               <DropdownMenuContent align="end">
                 {isAdmin && (
                   <DropdownMenuItem asChild>
-                    <Link to="/admin/upload" className="flex items-center cursor-pointer">
+                    <Link
+                      to="/admin/upload"
+                      className="flex items-center cursor-pointer"
+                    >
                       <Settings className="mr-2 h-4 w-4" />
                       Admin Panel
                     </Link>
