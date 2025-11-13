@@ -1,6 +1,5 @@
-import { ShoppingCart, Search, User, LogOut, Settings } from "lucide-react";
+import { ShoppingCart, User, LogOut, Settings } from "lucide-react";
 import { Button } from "./ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { SearchInput } from "@/components/SearchInput";
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -45,7 +45,7 @@ export const Header = () => {
     navigate("/");
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
@@ -54,28 +54,17 @@ export const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h1
-            className="text-2xl font-bold text-primary cursor-pointer"
-            onClick={() => navigate("/")}
-          >
-            DEZEMU
-          </h1>
-        </div>
-
-        <form
-          className="hidden md:flex flex-1 max-w-xl mx-8 relative"
-          onSubmit={handleSearch}
+        <h1
+          className="text-2xl font-bold text-primary cursor-pointer"
+          onClick={() => navigate("/")}
         >
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Ürün ara..."
-            className="pl-10"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          DEZEMU
+        </h1>
+
+        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-8">
+          <SearchInput value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
         </form>
 
         <div className="flex items-center gap-2">
