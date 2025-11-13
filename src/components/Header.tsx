@@ -1,5 +1,6 @@
-import { ShoppingCart, User, LogOut, Settings } from "lucide-react";
+import { ShoppingCart, Search, User, LogOut, Settings } from "lucide-react";
 import { Button } from "./ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,13 +9,13 @@ import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/useCart";
 import { useAdmin } from "@/hooks/useAdmin";
+import { SearchInput } from "@/components/SearchInput";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { SearchInput } from "@/components/SearchInput";
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -29,7 +30,9 @@ export const Header = () => {
       setUser(session?.user ?? null);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
 
@@ -54,19 +57,29 @@ export const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <h1
-          className="text-2xl font-bold text-primary cursor-pointer"
-          onClick={() => navigate("/")}
-        >
-          DEZEMU
-        </h1>
+        {/* Logo */}
+        <div className="flex items-center gap-4">
+          <h1
+            className="text-2xl font-bold text-primary cursor-pointer"
+            onClick={() => navigate("/")}
+          >
+            DEZEMU
+          </h1>
+        </div>
 
-        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-8">
-          <SearchInput value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-        </form>
+        {/* Search */}
+        <div className="hidden md:flex flex-1 max-w-xl mx-8">
+          <form className="w-full" onSubmit={handleSearch}>
+            <SearchInput
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </form>
+        </div>
 
+        {/* User & Cart */}
         <div className="flex items-center gap-2">
           {user ? (
             <DropdownMenu>
@@ -75,6 +88,7 @@ export const Header = () => {
                   <User className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
+
               <DropdownMenuContent align="end">
                 {isAdmin && (
                   <DropdownMenuItem asChild>
@@ -84,6 +98,14 @@ export const Header = () => {
                     </Link>
                   </DropdownMenuItem>
                 )}
+
+                <DropdownMenuItem asChild>
+                  <Link to="/orders" className="flex items-center cursor-pointer">
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    Siparişlerim
+                  </Link>
+                </DropdownMenuItem>
+
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Çıkış Yap
@@ -97,6 +119,7 @@ export const Header = () => {
               </Button>
             </Link>
           )}
+
           <Button
             variant="ghost"
             size="icon"
