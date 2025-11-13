@@ -14,6 +14,7 @@ import FAQ from "./pages/FAQ";
 import Shipping from "./pages/Shipping";
 import AdminUpload from "./pages/AdminUpload";
 import NotFound from "./pages/NotFound";
+import SearchPage from "@/pages/SearchPage";
 
 const queryClient = new QueryClient();
 
