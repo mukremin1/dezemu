@@ -17,20 +17,20 @@ export const SearchPage = () => {
 
       setLoading(true);
       try {
-        // Eğer supabase-js sürümünüz .or destekliyorsa şu şekilde isim ve açıklamada arama yapabilirsiniz:
+        // Eğer supabase-js sürümünüz .or destekliyorsa iki alanda arama yapmak için:
         // const { data, error } = await supabase
         //   .from("products")
         //   .select("*")
-        //   .or(`name.ilike.%${query}%,description.ilike.%${query}%`);
+        //   .or(`name.ilike.%${query}%,short_description.ilike.%${query}%`);
 
-        // Basit tek alan arama (mevcut)
+        // Basit tek alan arama:
         const { data, error } = await supabase
           .from("products")
           .select("*")
           .ilike("name", `%${query}%`);
 
         if (error) {
-          console.error(error);
+          console.error("Supabase search error:", error);
           setError(error.message || "Arama sırasında bir hata oluştu.");
         } else {
           setResults(data ?? []);
@@ -52,29 +52,22 @@ export const SearchPage = () => {
 
       {loading && <p>Yükleniyor...</p>}
 
-      {!loading && error && (
-        <div className="text-red-600">Hata: {error}</div>
-      )}
+      {!loading && error && <div className="text-red-600">Hata: {error}</div>}
 
-      {!loading && !error && !query && (
-        <p>Aramak için üstteki kutuya bir terim girin.</p>
-      )}
+      {!loading && !error && !query && <p>Aramak için bir terim girin.</p>}
 
-      {!loading && !error && query && results.length === 0 && (
-        <p>Sonuç bulunamadı.</p>
-      )}
+      {!loading && !error && query && results.length === 0 && <p>Sonuç bulunamadı.</p>}
 
       {!loading && !error && results.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {results.map((r) => (
-            <div key={r.id} className="border rounded p-4">
-              <h2 className="font-semibold">{r.name}</h2>
-              {r.price != null && <p>Fiyat: ₺{r.price}</p>}
-              {r.short_description && <p className="text-sm">{r.short_description}</p>}
-              {/* İhtiyaca göre link, resim vb. ekleyin */}
-            </div>
+        <ul className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {results.map((item) => (
+            <li key={item.id} className="border p-4 rounded">
+              <h2 className="font-semibold">{item.name}</h2>
+              {item.short_description && <p className="text-sm">{item.short_description}</p>}
+              {item.price != null && <p className="font-bold mt-2">₺{item.price}</p>}
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
