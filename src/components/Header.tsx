@@ -1,77 +1,53 @@
-// src/components/Header.tsx
-import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ShoppingCart, Search, User, Heart } from 'lucide-react'
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DEZEMU</title>
+  <meta name="description" content="DEZEMU - Türkiye'nin yeni nesil e-ticaret platformu. 15 Kasım 2025" />
+  <meta name="author" content="mukremin1" />
+  <meta name="keywords" content="e-ticaret, dezemu, alışveriş, Türkiye, teknoloji" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
 
-export const Header = () => {
-  const [time, setTime] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [cartCount] = useState(0)
-  const navigate = useNavigate()
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="DEZEMU" />
+  <meta property="og:description" content="DEZEMU - Türkiye'nin yeni nesil e-ticaret platformu. 15 Kasım 2025" />
+  <meta property="og:image" content="https://mukremin1.github.io/dezemu/og-image.jpg" />
+  <meta property="og:url" content="https://dezemu.com" />
 
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date()
-      const trTime = now.toLocaleString('tr-TR', {
-        timeZone: 'Europe/Istanbul',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      })
-      setTime(trTime)
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="DEZEMU" />
+  <meta name="twitter:description" content="DEZEMU - Türkiye'nin yeni nesil e-ticaret platformu. 15 Kasım 2025" />
+  <meta name="twitter:image" content="https://mukremin1.github.io/dezemu/og-image.jpg" />
+
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN (dev) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } },
     }
-    updateTime()
-    const timer = setInterval(updateTime, 1000)
-    return () => clearInterval(timer)
-  }, [])
+  </script>
+</head>
+<body class="bg-background text-foreground">
+  <div id="root"></div>
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchTerm.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`)
-      setSearchTerm('')
-    }
-  }
+  <noscript>
+    <div class="flex flex-col items-center justify-center min-h-screen p-8 text-center font-sans">
+      <h1 class="text-3xl font-bold text-primary mb-4">DEZEMU</h1>
+      <p class="text-muted-foreground mb-2">JavaScript devre dışı.</p>
+      <p class="text-sm text-muted-foreground">Lütfen etkinleştirin.</p>
+      <p class="text-xs text-muted-foreground mt-4">
+        Current time: November 15, 2025 01:21 PM +03 | Country: TR
+      </p>
+    </div>
+  </noscript>
 
-  return (
-    <header className="site-header">
-      <div className="top-bar">
-        <div className="user-info">
-          <span className="time">Current time: {time}</span>
-          <span className="country">Country: TR</span>
-        </div>
-        <Link to="/cart" className="cart-link">
-          <ShoppingCart size={20} />
-          {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
-        </Link>
-      </div>
-
-      <div className="main-nav">
-        <Link to="/" className="logo">DEZEMU</Link>
-
-        <form onSubmit={handleSearch} className="search-form">
-          <Search size={20} className="search-icon" />
-          <input
-            type="text"
-            placeholder="Ürün ara..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-        </form>
-
-        <div className="nav-icons">
-          <button className="icon-btn" aria-label="Hesap">
-            <User size={22} />
-          </button>
-          <button className="icon-btn" aria-label="Favoriler">
-            <Heart size={22} />
-          </button>
-        </div>
-      </div>
-    </header>
-  )
-}
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
