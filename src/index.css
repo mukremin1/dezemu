@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ========================================
+   DESIGN SYSTEM – HSL RENKLER (Shadcn UI Tarzı)
+   ======================================== */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -24,6 +27,8 @@
     --input: 20 5.9% 90%;
     --ring: 25 95% 53%;
     --radius: 0.5rem;
+
+    /* Sidebar opsiyonel */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 20 14.3% 4.1%;
     --sidebar-primary: 25 95% 53%;
