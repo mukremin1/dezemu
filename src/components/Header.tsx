@@ -31,14 +31,13 @@ export const Header = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchTerm.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchTerm)}`)
+      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`)
       setSearchTerm('')
     }
   }
 
   return (
     <header className="site-header">
-      {/* Top Bar - User Info */}
       <div className="top-bar">
         <div className="user-info">
           <span className="time">Current time: {time}</span>
@@ -50,7 +49,6 @@ export const Header = () => {
         </Link>
       </div>
 
-      {/* Main Navigation */}
       <div className="main-nav">
         <Link to="/" className="logo">DEZEMU</Link>
 
