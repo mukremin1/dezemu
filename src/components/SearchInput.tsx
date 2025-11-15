@@ -17,7 +17,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      className="border border-gray-300 rounded-md px-3 py-1 text-sm 
+                 focus:outline-none focus:ring-2 focus:ring-blue-500"
     />
   );
 };
