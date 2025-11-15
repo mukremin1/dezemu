@@ -1,15 +1,20 @@
-import React from "react";
-import Header from "@/components/Header";
+import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Header from "@components/Header";
+import HomePage from "@pages/HomePage";
+import OrdersPage from "@pages/OrdersPage";
 
 const App: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Header />
-      <main className="p-4">
-        <h2 className="text-2xl font-semibold">Welcome to Dezemu Shop!</h2>
-        <p className="mt-2 text-gray-600">Explore our amazing products.</p>
-      </main>
-    </div>
+    <Router>
+      <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      <Routes>
+        <Route path="/" element={<HomePage searchQuery={searchQuery} />} />
+        <Route path="/orders" element={<OrdersPage />} />
+      </Routes>
+    </Router>
   );
 };
 
