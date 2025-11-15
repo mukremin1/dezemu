@@ -6,10 +6,11 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"), // tüm src altındaki importlar için
+      "@": path.resolve(__dirname, "src"), // src altındaki her şeyi @ ile kullanabilirsin
       "@components": path.resolve(__dirname, "src/components"),
       "@pages": path.resolve(__dirname, "src/pages"),
       "@assets": path.resolve(__dirname, "src/assets"),
+      "@utils": path.resolve(__dirname, "src/utils"),
     },
   },
 });
