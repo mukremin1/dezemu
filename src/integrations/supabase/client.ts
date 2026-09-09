@@ -4,28 +4,11 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 
-/** import.meta.env veya process.env içinden bir değişken okur (güvenli: process kontrolü yapar) */
-function getEnv(name: string): string | undefined {
-  // Öncelikle import.meta.env varsa onu dene (Vite, Snowpack vb. için)
-  try {
-    const v = (import.meta as any)?.env?.[name];
-    if (typeof v === "string" && v.length > 0) return v;
-  } catch {
-    // import.meta erişimi başarısız olursa yoksay
-  }
-
-  // Tarayıcı ortamında `process` olmayabilir; bu yüzden önce typeof kontrolü yapıyoruz.
-  if (typeof process !== "undefined") {
-    const p = (process as any)?.env?.[name];
-    if (typeof p === "string" && p.length > 0) return p;
-  }
-
-  return undefined;
-}
-
-const SUPABASE_URL = getEnv("VITE_SUPABASE_URL") ?? "";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "";
 const SUPABASE_PUBLISHABLE_KEY =
-  getEnv("VITE_SUPABASE_PUBLISHABLE_KEY") ?? getEnv("VITE_SUPABASE_ANON_KEY") ?? "";
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  "";
 
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   console.warn(
@@ -34,19 +17,40 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   );
 }
 
+function unavailable(action: string) {
+  return Promise.resolve({ data: null, error: new Error(`Supabase yapılandırılmadı. ${action}`) });
+}
+
+function chain(table: string) {
+  const query: any = {
+    select: () => query,
+    insert: () => unavailable(`${table} insert`),
+    update: () => query,
+    delete: () => query,
+    upsert: () => unavailable(`${table} upsert`),
+    eq: () => query,
+    in: () => query,
+    order: () => query,
+    maybeSingle: () => unavailable(`${table} select`),
+    single: () => unavailable(`${table} select`),
+    then: (resolve: (value: any) => void) => resolve({ data: [], error: null }),
+  };
+  return query;
+}
+
 /** Geçici stub (supabase konfigüre edilmemişse hata yerine çalışsın) */
 const stub = {
   auth: {
     getUser: async () => ({ data: { user: null }, error: null }),
+    getSession: async () => ({ data: { session: null }, error: null }),
+    onAuthStateChange: (_cb: any) => ({ data: { subscription: { unsubscribe: () => {} } } }),
     signInWithPassword: async () => ({ data: null, error: new Error("Supabase yapılandırılmadı") }),
     signOut: async () => ({ error: new Error("Supabase yapılandırılmadı") }),
   },
-  from: (table: string) => ({
-    select: async (..._args: any[]) => { throw new Error(`Supabase yapılandırılmadı. Table: ${table}`); },
-    insert: async (..._args: any[]) => { throw new Error(`Supabase yapılandırılmadı. Table: ${table}`); },
-    update: async (..._args: any[]) => { throw new Error(`Supabase yapılandırılmadı. Table: ${table}`); },
-    delete: async (..._args: any[]) => { throw new Error(`Supabase yapılandırılmadı. Table: ${table}`); },
-  }),
+  from: (table: string) => chain(table),
+  functions: {
+    invoke: async () => ({ data: null, error: new Error("Supabase yapılandırılmadı") }),
+  },
 } as unknown as ReturnType<typeof createClient>;
 
 let supabase: any;

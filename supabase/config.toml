@@ -1,1 +1,4 @@
 project_id = "usoqcnxzqohpkwbwfnns"
+
+[functions.fetch-xml]
+verify_jwt = true

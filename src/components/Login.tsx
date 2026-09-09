@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -8,20 +8,17 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const navigate = useNavigate();
-  
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         setMessage(error.message);
       } else {
-        setMessage("Giriş başarılı.");
-        // Redirect to dashboard or home
-        setTimeout(() => navigate("/dashboard"), 400);
+        navigate("/");
       }
     } catch (err: any) {
       setMessage(err.message || "Giriş sırasında hata oluştu.");
@@ -31,34 +28,47 @@ export default function Login() {
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: "0 auto", padding: 16 }}>
-      <h2>Giriş Yap</h2>
-      <form onSubmit={handleLogin}>
-        <label style={{ display: "block", marginBottom: 8 }}>
-          Email
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            type="email"
-            required
-            style={{ width: "100%", padding: 8, marginTop: 4 }}
-          />
-        </label>
-        <label style={{ display: "block", marginBottom: 8 }}>
-          Şifre
-          <input
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            type="password"
-            required
-            style={{ width: "100%", padding: 8, marginTop: 4 }}
-          />
-        </label>
-        <button type="submit" disabled={loading} style={{ padding: "8px 16px" }}>
-          {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
-        </button>
-      </form>
-      {message && <p style={{ marginTop: 12 }}>{message}</p>}
-    </div>
+    <main className="max-w-md mx-auto px-4 py-12">
+      <div className="bg-white border rounded-xl p-6">
+        <h1 className="text-2xl font-bold mb-1">Giriş Yap</h1>
+        <p className="text-sm text-gray-600 mb-4">Siparişlerinizi ve hesabınızı yönetmek için giriş yapın.</p>
+        <form onSubmit={handleLogin} className="space-y-3">
+          <label className="block text-sm">
+            E-posta
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              required
+              className="mt-1 w-full border rounded-md px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm">
+            Şifre
+            <input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              required
+              className="mt-1 w-full border rounded-md px-3 py-2"
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#ff6a00] text-white py-2.5 rounded-md disabled:opacity-60"
+          >
+            {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
+          </button>
+        </form>
+        {message && <p className="mt-3 text-sm text-red-600">{message}</p>}
+        <p className="mt-4 text-sm text-gray-600">
+          Hesabınız yok mu?{" "}
+          <Link to="/signup" className="text-[#ff6a00] hover:underline">
+            Kayıt ol
+          </Link>
+        </p>
+      </div>
+    </main>
   );
 }

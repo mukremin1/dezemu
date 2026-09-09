@@ -1,153 +1,124 @@
-// src/pages/SearchPage.tsx
-import { useEffect, useState } from "react"
-import { useSearchParams, Link } from "react-router-dom"
-import { supabase } from "@/integrations/supabase/client"
-import { Search, AlertCircle, Package } from "lucide-react"
+import { useEffect, useState } from "react";
+import { useSearchParams, Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Search, AlertCircle, Package } from "lucide-react";
+import { ProductCard, ProductCardSkeleton, type ShopProduct } from "@/components/ProductCard";
+import { applyVisibleProducts } from "@/lib/shopVisibility";
 
-interface Product {
-  id: string
-  name: string
-  short_description?: string
-  price?: number
-  image_url?: string
+function sanitizeSearch(value: string) {
+  return value.replace(/[%_,]/g, " ").trim();
 }
 
 export const SearchPage = () => {
-  const [searchParams] = useSearchParams()
-  const query = searchParams.get("q") || ""
-  const [results, setResults] = useState<Product[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("q") || "";
+  const [results, setResults] = useState<ShopProduct[]>([]);
+  const [loading, setLoading] = useState(!!searchParams.get("q"));
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchResults = async () => {
-      setError(null)
-      setResults([])
-      if (!query.trim()) return
-
-      setLoading(true)
-      try {
-        const { data, error } = await supabase
-          .from("products")
-          .select("id, name, short_description, price, image_url")
-          .or(`name.ilike.%${query}%,short_description.ilike.%${query}%`)
-          .order("name", { ascending: true })
-
-        if (error) throw error
-        setResults(data ?? [])
-      } catch (err: any) {
-        console.error("Supabase arama hatası:", err)
-        setError(err.message || "Arama sırasında hata oluştu.")
-      } finally {
-        setLoading(false)
+      const safe = sanitizeSearch(query);
+      setError(null);
+      if (!safe) {
+        setResults([]);
+        setLoading(false);
+        return;
       }
-    }
 
-    fetchResults()
-  }, [query])
+      setLoading(true);
+      try {
+        const { data, error: queryError } = await applyVisibleProducts(
+          supabase
+            .from("products")
+            .select("id, name, slug, short_description, price, compare_price, product_images(image_url, position)")
+            .gt("price", 0)
+            .ilike("name", `%${safe}%`)
+            .order("name", { ascending: true })
+            .limit(48)
+        );
+
+        if (queryError) throw queryError;
+        setResults((data as ShopProduct[]) ?? []);
+      } catch (err: any) {
+        setError(err.message || "Arama sırasında hata oluştu.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResults();
+  }, [query]);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Başlık */}
+    <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8 flex items-center gap-3">
-        <Search className="text-primary" size={28} />
+        <Search className="text-[#ff6a00]" size={28} />
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-            Arama: <span className="text-primary">"{query}"</span>
+          <h1 className="text-2xl md:text-3xl font-bold">
+            {query ? (
+              <>
+                Arama: <span className="text-[#ff6a00]">"{query}"</span>
+              </>
+            ) : (
+              "Ürün ara"
+            )}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            {loading ? "Yükleniyor..." : `${results.length} ürün bulundu`}
+          <p className="text-sm text-gray-600">
+            {!query
+              ? "Aramak için üstteki kutuyu kullanın."
+              : loading
+                ? "Yükleniyor..."
+                : `${results.length} ürün bulundu`}
           </p>
         </div>
       </div>
 
-      {/* Loading */}
+      {!query && (
+        <p className="text-gray-600">
+          Üst menüdeki arama kutusuna ürün adı yazın.{" "}
+          <Link to="/" className="text-[#ff6a00] hover:underline">
+            Tüm ürünlere dön
+          </Link>
+        </p>
+      )}
+
       {loading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="bg-card rounded-lg border animate-pulse">
-              <div className="bg-muted rounded-t-lg h-48" />
-              <div className="p-4 space-y-3">
-                <div className="h-5 bg-muted rounded w-3/4" />
-                <div className="h-4 bg-muted rounded w-full" />
-                <div className="h-6 bg-muted rounded w-1/3" />
-              </div>
-            </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <ProductCardSkeleton key={i} />
           ))}
         </div>
       )}
 
-      {/* Hata */}
       {!loading && error && (
-        <div className="bg-destructive/10 border border-destructive/50 rounded-lg p-8 text-center">
-          <AlertCircle className="mx-auto text-destructive mb-4" size={56} />
-          <p className="text-destructive font-medium text-lg">{error}</p>
-          <Link to="/" className="text-primary hover:underline text-sm mt-3 inline-block">
+        <div className="border rounded-lg p-8 text-center bg-white">
+          <AlertCircle className="mx-auto text-red-600 mb-4" size={56} />
+          <p className="text-red-600 font-medium text-lg">{error}</p>
+          <Link to="/" className="text-[#ff6a00] hover:underline text-sm mt-3 inline-block">
             Ana sayfaya dön
           </Link>
         </div>
       )}
 
-      {/* Boş Sonuç */}
       {!loading && !error && query && results.length === 0 && (
         <div className="text-center py-20">
-          <Package className="mx-auto text-muted-foreground mb-6" size={80} />
-          <p className="text-xl text-muted-foreground mb-2">Sonuç bulunamadı.</p>
-          <p className="text-sm text-muted-foreground">
-            "{query}" için ürün bulunamadı.
-          </p>
-          <Link to="/" className="text-primary hover:underline text-sm mt-4 inline-block">
+          <Package className="mx-auto text-gray-400 mb-6" size={80} />
+          <p className="text-xl text-gray-600 mb-2">Sonuç bulunamadı.</p>
+          <p className="text-sm text-gray-500">"{query}" için ürün bulunamadı.</p>
+          <Link to="/" className="text-[#ff6a00] hover:underline text-sm mt-4 inline-block">
             Ana sayfaya dön
           </Link>
         </div>
       )}
 
-      {/* Sonuçlar */}
       {!loading && !error && results.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {results.map((item) => (
-            <Link
-              key={item.id}
-              to={`/product/${item.id}`}
-              className="group block bg-card rounded-lg border hover:border-primary/50 transition-all hover:shadow-lg overflow-hidden"
-            >
-              <div className="aspect-square relative overflow-hidden bg-muted">
-                {item.image_url ? (
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package className="text-muted-foreground" size={48} />
-                  </div>
-                )}
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-foreground group-hover:text-primary transition line-clamp-2">
-                  {item.name}
-                </h3>
-                {item.short_description && (
-                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                    {item.short_description}
-                  </p>
-                )}
-                {item.price != null && (
-                  <div className="mt-3 flex items-center justify-between">
-                    <span className="text-lg font-bold text-primary">
-                      ₺{item.price.toFixed(2)}
-                    </span>
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                      Detay
-                    </span>
-                  </div>
-                )}
-              </div>
-            </Link>
+            <ProductCard key={item.id} product={item} />
           ))}
         </div>
       )}
     </div>
-  )
-}
+  );
+};

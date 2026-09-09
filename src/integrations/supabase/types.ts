@@ -408,6 +408,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_list_products: {
+        Args: {
+          p_search?: string
+          p_status?: string
+          p_offset?: number
+          p_limit?: number
+        }
+        Returns: Json
+      }
       generate_order_number: { Args: never; Returns: string }
       has_role: {
         Args: {

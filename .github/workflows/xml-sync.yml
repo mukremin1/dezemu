@@ -1,0 +1,36 @@
+name: XML catalog sync
+
+on:
+  schedule:
+    - cron: "15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Sync stock and new products from XML
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      XML_FEED_URL: ${{ secrets.XML_FEED_URL }}
+      XML_ADD_KDV: "true"
+      XML_PROFIT_PERCENT: "20"
+      XML_CARGO_PRICE: "49"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync XML catalog
+        run: node scripts/sync-xml-catalog.mjs

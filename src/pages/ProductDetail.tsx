@@ -1,258 +1,279 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Minus, Plus, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, ArrowLeft } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useCart } from "@/hooks/useCart";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { formatPrice } from "@/lib/format";
+import { firstProductImage } from "@/components/ProductCard";
+import { useShopCart } from "@/hooks/useShopCart";
+import { useAdmin } from "@/hooks/useAdmin";
+import { deleteAdminProduct, setProductActive } from "@/lib/adminCatalog";
+import { applyVisibleProducts, productIsClosed, withClosedTag } from "@/lib/shopVisibility";
 
-const ProductDetail = () => {
-  const { slug } = useParams();
-  const navigate = useNavigate();
-  const [quantity, setQuantity] = useState(1);
-  const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
-  const [finalPrice, setFinalPrice] = useState(0);
-  const [finalStock, setFinalStock] = useState(0);
-  const addItem = useCart((state) => state.addItem);
-
-  const { data: product, isLoading } = useQuery({
-    queryKey: ["product", slug],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select(`
-          *,
-          product_images(image_url, alt_text, position),
-          categories(name),
-          product_variants(*)
-        `)
-        .eq("slug", slug)
-        .eq("is_active", true)
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const activeVariants = product?.product_variants?.filter((v: any) => v.is_active) || [];
-
-  useEffect(() => {
-    if (product) {
-      if (selectedVariant && activeVariants.length > 0) {
-        const variant = activeVariants.find((v: any) => v.id === selectedVariant);
-        if (variant) {
-          setFinalPrice(Number(product.price) + Number(variant.price_adjustment || 0));
-          setFinalStock(variant.stock_quantity);
-        }
-      } else {
-        setFinalPrice(Number(product.price));
-        setFinalStock(product.stock_quantity);
-      }
-    }
-  }, [product, selectedVariant, activeVariants]);
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-1 container py-8">
-          <div className="grid md:grid-cols-2 gap-8">
-            <Skeleton className="aspect-square rounded-lg" />
-            <div className="space-y-4">
-              <Skeleton className="h-8 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
-              <Skeleton className="h-20 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (!product) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-1 container py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Ürün bulunamadı</h1>
-            <Button onClick={() => navigate("/")}>Ana Sayfaya Dön</Button>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  const discount = product.compare_price
-    ? Math.round(((product.compare_price - product.price) / product.compare_price) * 100)
-    : 0;
-
-  return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-1 container py-8">
-        <Button
-          variant="ghost"
-          className="mb-6"
-          onClick={() => navigate("/")}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Geri Dön
-        </Button>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <div className="aspect-square relative overflow-hidden rounded-lg border">
-              <img
-                src={product.product_images?.[0]?.image_url || "/placeholder.svg"}
-                alt={product.name}
-                className="object-cover w-full h-full"
-              />
-              {discount > 0 && (
-                <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-lg px-3 py-1">
-                  -{discount}%
-                </Badge>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-              {product.categories && (
-                <p className="text-muted-foreground">
-                  Kategori: {product.categories.name}
-                </p>
-              )}
-            </div>
-
-            <div className="flex items-center gap-4">
-              <span className="text-4xl font-bold text-primary">
-                ₺{finalPrice.toFixed(2)}
-              </span>
-              {product.compare_price && (
-                <span className="text-2xl text-muted-foreground line-through">
-                  ₺{Number(product.compare_price).toFixed(2)}
-                </span>
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              {product.is_digital && (
-                <Badge variant="secondary">Dijital Ürün</Badge>
-              )}
-              {finalStock > 0 ? (
-                <Badge variant="secondary" className="bg-green-500/10 text-green-700">
-                  Stokta Var ({finalStock} adet)
-                </Badge>
-              ) : (
-                <Badge variant="destructive">Stokta Yok</Badge>
-              )}
-            </div>
-
-            {product.short_description && (
-              <p className="text-lg text-muted-foreground">
-                {product.short_description}
-              </p>
-            )}
-
-            {activeVariants.length > 0 && (
-              <div className="space-y-3 border rounded-lg p-4 bg-muted/50">
-                <Label htmlFor="variant-select" className="text-base font-semibold">
-                  Varyant Seçin
-                </Label>
-                <Select value={selectedVariant || ""} onValueChange={setSelectedVariant}>
-                  <SelectTrigger id="variant-select" className="w-full bg-background">
-                    <SelectValue placeholder="Bir varyant seçin" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background z-50">
-                    {activeVariants.map((variant: any) => (
-                      <SelectItem key={variant.id} value={variant.id}>
-                        {variant.name}: {variant.value}
-                        {variant.price_adjustment !== 0 && (
-                          <span className="text-muted-foreground ml-2">
-                            ({variant.price_adjustment > 0 ? '+' : ''}₺{Number(variant.price_adjustment).toFixed(2)})
-                          </span>
-                        )}
-                        <span className="text-xs text-muted-foreground ml-2">
-                          (Stok: {variant.stock_quantity})
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            <div className="flex items-center gap-4">
-              <div className="flex items-center border rounded-md">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  disabled={quantity <= 1}
-                >
-                  -
-                </Button>
-                <span className="px-4 py-2 min-w-12 text-center">{quantity}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setQuantity(quantity + 1)}
-                  disabled={quantity >= finalStock}
-                >
-                  +
-                </Button>
-              </div>
-              <Button
-                className="flex-1"
-                size="lg"
-                disabled={finalStock === 0 || (activeVariants.length > 0 && !selectedVariant)}
-                onClick={() => {
-                  const variantInfo = selectedVariant 
-                    ? activeVariants.find((v: any) => v.id === selectedVariant)
-                    : null;
-
-                  addItem({
-                    id: selectedVariant || product.id,
-                    name: variantInfo ? `${product.name} - ${variantInfo.name}: ${variantInfo.value}` : product.name,
-                    price: finalPrice,
-                    imageUrl: product.product_images?.[0]?.image_url,
-                    stock: finalStock,
-                    slug: product.slug,
-                    quantity,
-                  });
-                }}
-              >
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                {activeVariants.length > 0 && !selectedVariant ? "Varyant Seçin" : "Sepete Ekle"}
-              </Button>
-            </div>
-
-            {product.description && (
-              <div className="border-t pt-6">
-                <h2 className="text-xl font-semibold mb-4">Ürün Açıklaması</h2>
-                <div className="prose prose-sm max-w-none text-muted-foreground">
-                  {product.description}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </main>
-      <Footer />
-    </div>
-  );
+type ProductDetailRow = {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  compare_price: number | null;
+  description: string | null;
+  short_description: string | null;
+  stock_quantity: number;
+  is_active: boolean;
+  tags: string[] | null;
+  product_images: { image_url: string; position: number }[] | null;
+  categories: { name: string; slug: string } | null;
 };
 
-export default ProductDetail;
+export default function ProductDetail() {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const { addItem } = useShopCart();
+  const { isAdmin, isLoading: adminLoading } = useAdmin();
+  const [product, setProduct] = useState<ProductDetailRow | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeImage, setActiveImage] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
+  const [adminBusy, setAdminBusy] = useState(false);
+  const [adminMessage, setAdminMessage] = useState<string | null>(null);
+  const [adminError, setAdminError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (adminLoading) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      let query = supabase
+        .from("products")
+        .select(
+          "id, name, slug, price, compare_price, description, short_description, stock_quantity, is_active, tags, product_images(image_url, position), categories(name, slug)"
+        )
+        .eq("slug", slug);
+      if (!isAdmin) query = applyVisibleProducts(query);
+      const { data } = await query.maybeSingle();
+      if (!cancelled) {
+        setProduct((data as ProductDetailRow) ?? null);
+        setActiveImage(0);
+        setQuantity(1);
+        setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, isAdmin, adminLoading]);
+
+  if (loading || adminLoading) return <main className="max-w-5xl mx-auto p-6 text-gray-500">Ürün yükleniyor...</main>;
+  if (!product) {
+    return (
+      <main className="max-w-5xl mx-auto p-6">
+        <h1 className="text-2xl font-bold mb-3">Ürün bulunamadı</h1>
+        <Link to="/" className="text-[#ff6a00] hover:underline">
+          Anasayfaya dön
+        </Link>
+      </main>
+    );
+  }
+
+  const images = [...(product.product_images ?? [])].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+  const image = images[activeImage]?.image_url || images[0]?.image_url || "/placeholder.svg";
+  const waText = encodeURIComponent(
+    `Merhaba, ${product.name} ürününden ${quantity} adet sipariş vermek istiyorum. Fiyat: ${formatPrice(product.price)}`
+  );
+  const inStock = product.stock_quantity > 0;
+  const closed = productIsClosed(product);
+
+  const addToCart = () => {
+    addItem(
+      {
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        price: product.price,
+        imageUrl: firstProductImage(product),
+      },
+      quantity
+    );
+    setAdded(true);
+    window.setTimeout(() => setAdded(false), 1800);
+  };
+
+  return (
+    <main className="max-w-5xl mx-auto px-4 py-8">
+      <Link to="/" className="text-sm text-gray-500 hover:underline">
+        ← Tüm ürünler
+      </Link>
+
+      <div className="grid md:grid-cols-2 gap-8 mt-4">
+        <div>
+          <div className="aspect-square border rounded-xl overflow-hidden bg-gray-50">
+            <img src={image} alt={product.name} className="w-full h-full object-cover" />
+          </div>
+          {images.length > 1 && (
+            <div className="flex gap-2 mt-3 overflow-x-auto">
+              {images.map((item, index) => (
+                <button
+                  key={`${item.image_url}-${index}`}
+                  type="button"
+                  onClick={() => setActiveImage(index)}
+                  className={`h-16 w-16 rounded border overflow-hidden ${index === activeImage ? "ring-2 ring-[#ff6a00]" : ""}`}
+                >
+                  <img src={item.image_url} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          {product.categories?.name && (
+            <Link to={`/?kategori=${product.categories.slug}`} className="text-sm text-gray-500 hover:text-[#ff6a00]">
+              {product.categories.name}
+            </Link>
+          )}
+          <h1 className="text-2xl md:text-3xl font-bold">{product.name}</h1>
+          {isAdmin && (
+            <div className="rounded-lg border bg-gray-50 p-3 space-y-2">
+              <p className="text-sm font-medium">
+                Admin · {closed ? "Kapalı, mağazada görünmez" : "Vitrinde açık"}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {closed ? (
+                  <button
+                    type="button"
+                    disabled={adminBusy}
+                    onClick={async () => {
+                      setAdminBusy(true);
+                      setAdminError(null);
+                      try {
+                        await setProductActive(product.id, true);
+                        setProduct({ ...product, tags: withClosedTag(product.tags, false) });
+                        setAdminMessage("Ürün vitrine açıldı.");
+                      } catch (err: any) {
+                        setAdminError(err?.message || "Açılamadı.");
+                      } finally {
+                        setAdminBusy(false);
+                      }
+                    }}
+                    className="border bg-white px-3 py-1.5 rounded text-sm disabled:opacity-50"
+                  >
+                    Ürünü aç
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={adminBusy}
+                    onClick={async () => {
+                      setAdminBusy(true);
+                      setAdminError(null);
+                      try {
+                        await setProductActive(product.id, false);
+                        setProduct({ ...product, tags: withClosedTag(product.tags, true) });
+                        setAdminMessage("Ürün kapatıldı.");
+                      } catch (err: any) {
+                        setAdminError(err?.message || "Kapatılamadı.");
+                      } finally {
+                        setAdminBusy(false);
+                      }
+                    }}
+                    className="border bg-white px-3 py-1.5 rounded text-sm disabled:opacity-50"
+                  >
+                    Ürünü kapat
+                  </button>
+                )}
+                <button
+                  type="button"
+                  disabled={adminBusy}
+                  onClick={async () => {
+                    if (!window.confirm(`“${product.name}” silinsin mi? Bu işlem geri alınamaz.`)) return;
+                    setAdminBusy(true);
+                    setAdminError(null);
+                    try {
+                      const result = await deleteAdminProduct(product.id);
+                      if (result === "closed") {
+                        setProduct({ ...product, tags: withClosedTag(product.tags, true) });
+                        setAdminMessage("Siparişte kullanıldığı için silinemedi. Ürün kapatıldı.");
+                      } else {
+                        navigate("/admin/products");
+                      }
+                    } catch (err: any) {
+                      setAdminError(err?.message || "Silinemedi.");
+                    } finally {
+                      setAdminBusy(false);
+                    }
+                  }}
+                  className="border border-red-200 text-red-700 bg-white px-3 py-1.5 rounded text-sm disabled:opacity-50"
+                >
+                  Ürünü sil
+                </button>
+                <Link to="/admin/products" className="inline-flex items-center text-sm text-[#ff6a00] hover:underline">
+                  Ürün yönetimine git
+                </Link>
+              </div>
+              {adminMessage && <p className="text-sm text-green-700">{adminMessage}</p>}
+              {adminError && <p className="text-sm text-red-700">{adminError}</p>}
+            </div>
+          )}
+          <div className="flex items-baseline gap-3">
+            <span className="text-3xl font-bold text-[#ff6a00]">{formatPrice(product.price)}</span>
+            {product.compare_price && product.compare_price > product.price && (
+              <span className="text-lg text-gray-400 line-through">{formatPrice(product.compare_price)}</span>
+            )}
+          </div>
+          <p className="text-sm text-gray-600">{inStock ? `Stokta var (${product.stock_quantity})` : "Stokta yok"}</p>
+          {product.short_description && <p className="text-gray-700">{product.short_description}</p>}
+
+          {!closed && (
+            <>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center border rounded-md">
+                  <button type="button" className="p-2" onClick={() => setQuantity((q) => Math.max(1, q - 1))} aria-label="Azalt">
+                    <Minus className="h-4 w-4" />
+                  </button>
+                  <span className="w-8 text-center">{quantity}</span>
+                  <button
+                    type="button"
+                    className="p-2"
+                    onClick={() => setQuantity((q) => q + 1)}
+                    aria-label="Artır"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={addToCart}
+                  disabled={!inStock}
+                  className="flex-1 inline-flex items-center justify-center gap-2 bg-[#ff6a00] text-white px-5 py-3 rounded-md font-medium disabled:opacity-50"
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                  {added ? "Sepete eklendi" : "Sepete ekle"}
+                </button>
+              </div>
+
+              <a
+                href={`https://wa.me/905395263293?text=${waText}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center w-full bg-[#25D366] text-white px-5 py-3 rounded-md font-medium"
+              >
+                WhatsApp ile sipariş
+              </a>
+              <p className="text-xs text-gray-500">300 ₺ altı ürünlerde kargo satış fiyatına dahildir.</p>
+            </>
+          )}
+        </div>
+      </div>
+
+      {product.description && (
+        <section className="mt-10 border-t pt-6">
+          <h2 className="text-xl font-semibold mb-3">Ürün açıklaması</h2>
+          <div
+            className="prose max-w-none text-gray-700"
+            dangerouslySetInnerHTML={{ __html: product.description }}
+          />
+        </section>
+      )}
+    </main>
+  );
+}

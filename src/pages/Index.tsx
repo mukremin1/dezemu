@@ -240,7 +240,7 @@ const Index = () => {
 
           // SKU kontrolü - boş ise unique değer üret
           const skuValue = row['SKU'] || row['sku'];
-          const sku = skuValue ? `${skuValue}-${timestamp}-${uniqueId}` : `SKU-${timestamp}-${uniqueId}`;
+          const sku = skuValue ? String(skuValue) : null;
 
           productsToInsert.push({
             name: productName,

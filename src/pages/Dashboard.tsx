@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/hooks/useUser";
+import { useAdmin } from "@/hooks/useAdmin";
 import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   const { user, loading } = useUser();
+  const { isAdmin } = useAdmin();
   const [profile, setProfile] = useState<any | null>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [creatingVendor, setCreatingVendor] = useState(false);
@@ -137,10 +139,31 @@ export default function Dashboard() {
 
       <section>
         <h2>Hızlı Bağlantılar</h2>
-        <ul>
-          <li><Link to="/admin/upload">Ürün Ekle / Yönet</Link> (satıcıysanız)</li>
-          <li><Link to="/orders">Siparişlerim</Link></li>
-          <li><Link to="/profile">Profilimi Düzenle</Link></li>
+        <ul className="space-y-2">
+          <li>
+            <Link to="/" className="text-[#ff6a00] hover:underline">
+              Mağazaya dön
+            </Link>
+          </li>
+          <li>
+            <Link to="/cart" className="text-[#ff6a00] hover:underline">
+              Sepetim
+            </Link>
+          </li>
+          {isAdmin && (
+            <>
+              <li>
+                <Link to="/admin/products" className="text-[#ff6a00] hover:underline">
+                  Ürün kapat / sil
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/xml-import" className="text-[#ff6a00] hover:underline">
+                  XML ile ürün yükle
+                </Link>
+              </li>
+            </>
+          )}
         </ul>
       </section>
 

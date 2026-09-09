@@ -1,110 +1,47 @@
-import React from "react";
 import { Link } from "react-router-dom";
 
-const Footer: React.FC = () => {
-  const siteName = (import.meta as any).env?.VITE_SITE_NAME ?? "Dezemu";
-  const supportEmail = (import.meta as any).env?.VITE_SUPPORT_EMAIL ?? "destek@dezemu.com";
-  const siteUrl = (import.meta as any).env?.VITE_SITE_URL ?? "https://dezemu.com/";
+export default function Footer() {
   const year = new Date().getFullYear();
 
-  const footerStyle: React.CSSProperties = {
-    padding: 16,
-    textAlign: "center",
-    marginTop: 24,
-    borderTop: "1px solid #eaeaea",
-    background: "#fff",
-  };
-
-  const navStyle: React.CSSProperties = {
-    display: "flex",
-    gap: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    flexWrap: "wrap",
-    marginBottom: 8,
-  };
-
-  const smallStyle: React.CSSProperties = {
-    marginTop: 8,
-    fontSize: 12,
-    color: "#666",
-  };
-
-  const linkStyle: React.CSSProperties = {
-    color: "inherit",
-    textDecoration: "none",
-  };
-
-  // ekran-okuyucu gizli metin stili (inline, global css yoksa çalışır)
-  const srOnly: React.CSSProperties = {
-    border: 0,
-    clip: "rect(0 0 0 0)",
-    height: "1px",
-    margin: "-1px",
-    overflow: "hidden",
-    padding: 0,
-    position: "absolute",
-    width: "1px",
-    whiteSpace: "nowrap",
-  };
-
-  // JSON-LD organization structured data
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: siteName,
-    url: siteUrl,
-    contactPoint: [
-      {
-        "@type": "ContactPoint",
-        email: supportEmail,
-        contactType: "customer support",
-      },
-    ],
-  };
-
   return (
-    <footer role="contentinfo" style={footerStyle}>
-      {/* Erişilebilirlik: ekran okuyucular için kısa açıklama (görünmez) */}
-      <span style={srOnly}>{`${siteName} iletişim: ${supportEmail}`}</span>
-
-      <nav aria-label="footer" style={navStyle}>
-        <Link
-          to="/privacy-policy"
-          style={linkStyle}
-          aria-label="Gizlilik Politikası sayfasına git"
-          data-testid="footer-privacy"
-        >
-          Gizlilik Politikası
-        </Link>
-
-        <Link
-          to="/terms"
-          style={linkStyle}
-          aria-label="Kullanım Şartları sayfasına git"
-          data-testid="footer-terms"
-        >
-          Kullanım Şartları
-        </Link>
-
-        <a
-          href={`mailto:${supportEmail}`}
-          style={linkStyle}
-          aria-label={`E-posta ile iletişim: ${supportEmail}`}
-          data-testid="footer-contact"
-        >
-          İletişim
-        </a>
-      </nav>
-
-      <div style={smallStyle}>
-        © {year} {siteName} · Tüm hakları saklıdır.
+    <footer className="mt-auto border-t bg-white">
+      <div className="max-w-7xl mx-auto px-4 py-8 grid sm:grid-cols-3 gap-6 text-sm">
+        <div>
+          <p className="font-bold text-[#ff6a00] text-lg">Dezemu</p>
+          <p className="text-gray-600 mt-2">WhatsApp üzerinden hızlı sipariş ve destek.</p>
+        </div>
+        <nav className="space-y-2">
+          <Link to="/" className="block hover:text-[#ff6a00]">
+            Ürünler
+          </Link>
+          <Link to="/cart" className="block hover:text-[#ff6a00]">
+            Sepet
+          </Link>
+          <Link to="/search" className="block hover:text-[#ff6a00]">
+            Arama
+          </Link>
+        </nav>
+        <nav className="space-y-2">
+          <Link to="/privacy-policy" className="block hover:text-[#ff6a00]">
+            Gizlilik Politikası
+          </Link>
+          <Link to="/terms" className="block hover:text-[#ff6a00]">
+            Kullanım Şartları
+          </Link>
+          <a href="mailto:destek@dezemu.com" className="block hover:text-[#ff6a00]">
+            destek@dezemu.com
+          </a>
+          <a
+            href="https://wa.me/905395263293"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block hover:text-[#ff6a00]"
+          >
+            WhatsApp
+          </a>
+        </nav>
       </div>
-
-      {/* JSON-LD yapılandırma (arama motorları için) */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <p className="text-center text-xs text-gray-500 pb-6">© {year} Dezemu. Tüm hakları saklıdır.</p>
     </footer>
   );
-};
-
-export default Footer;
+}

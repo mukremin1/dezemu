@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urunler>
+  <urun>
+    <isim>Örnek Kablosuz Kulaklık</isim>
+    <kategori>Elektronik</kategori>
+    <fiyat>1299.90</fiyat>
+    <eskiFiyat>1499.90</eskiFiyat>
+    <aciklama>Gürültü önleyici kablosuz kulaklık.</aciklama>
+    <stok>25</stok>
+    <sku>DZM-XML-001</sku>
+    <resim>https://placehold.co/600x600/ff6a00/white.png?text=Kulaklik</resim>
+  </urun>
+  <urun>
+    <isim>Örnek Pamuk Tişört</isim>
+    <kategori>Giyim</kategori>
+    <fiyat>249.50</fiyat>
+    <aciklama>Regular fit pamuk tişört.</aciklama>
+    <stok>80</stok>
+    <sku>DZM-XML-002</sku>
+    <resim>https://placehold.co/600x600/111111/white.png?text=Tisort</resim>
+  </urun>
+</urunler>
